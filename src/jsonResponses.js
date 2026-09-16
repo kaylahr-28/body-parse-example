@@ -28,7 +28,7 @@ const getUsers = (request, response) => {
 };
 
 const addUser = (request, response) => {
-  responseJSON = {
+ const responseJSON = {
     message:'Name and age are both required!'
   };
 
