@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <title>Our simple HTTP server</title>
   <link rel="stylesheet" type="text/css" href="/style.css">
-  
+
   <script>
-    const handleResponse = (response) => {
+    const handleResponse = async (response) => {
       const content = document.querySelector('#content');
-      
-      switch(response.status) {
+
+      switch (response.status) {
         case 200:
           content.innerHTML = `<b>Success</b>`;
           break;
@@ -21,33 +22,65 @@
         case 400:
           content.innerHTML = `<b>Bad Request</b>`;
           break;
-        default: 
+        default:
           content.innerHTML = `Error code not implemented by client.`;
           break;
       }
-      
+
+      const obj = await response.json();
+      if (obj.message) {
+        content.innerHTML += `<p>${obj.message}</p>`;
+      }
     };
 
-    const sendPost = (nameForm) => {
+    const sendPost = async (nameForm) => {
+      const url = nameForm.getAttribute('action'); // '/addUser'
+      const method = nameForm.getAttribute('method'); //post
 
+      const name = nameForm.querySelector('#nameField').value;
+      const age = nameForm.querySelector('#ageField').value;
+
+      const dataType = nameForm.querySelector("#dataType").value;
+      console.log(dataType);
+     
+      let formData = `name=${name}&age=${age}`;
+
+      if (dataType === 'application/json') {
+        formData = JSON.stringify({name,age});
+      } 
+
+      //name=kr&age=20
+      //console.log(formData);
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': dataType,
+          'Accept': 'application/json',
+        },
+        body: formData
+      });
+
+      handleResponse(response);
     };
 
     const init = () => {
       const nameForm = document.querySelector('#nameForm');
-      
+
       const addUser = (e) => {
         e.preventDefault();
         sendPost(nameForm);
         return false;
       }
-      
-      //nameForm.addEventListener('submit', addUser);
+
+      nameForm.addEventListener('submit', addUser);
     };
 
     window.onload = init;
 
   </script>
 </head>
+
 <body>
   <section id="top">
     <h3>POST Status Code Tests</h3>
@@ -55,7 +88,13 @@
       <label for="name">Name: </label>
       <input id="nameField" type="text" name="name" />
       <label for="age">Age: </label>
-      <input id="ageField" type="number" name="age" min="0" max="100" step="1"/>
+      <input id="ageField" type="number" name="age" min="0" max="100" step="1" />
+
+      <select name="'dataType" id='dataType'>
+        <option value="application/x-www-form-urlencoded">URL encoded</option>
+        <option value="application/json">JSON</option>
+      </select>
+
       <input type="submit" value="Add User" />
     </form>
     <p>Go to <a href="/getUsers">/getUsers</a> to see users.</p>
@@ -63,4 +102,5 @@
   <section id="content">
   </section>
 </body>
+
 </html>
